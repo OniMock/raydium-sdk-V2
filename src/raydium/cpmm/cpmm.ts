@@ -66,70 +66,97 @@ export default class CpmmModule extends ModuleBase {
     accountInfos?: RpcPoolInfoAccounts,
     fetchConfigInfo?: boolean,
   ): Promise<CpmmRpcData> {
-    // Fetch accounts if poolId is provided, otherwise use accountInfos
-    const accounts = poolId
-      ? await getMultipleAccountsInfoWithCustomFlags(this.scope.connection, [{ pubkey: new PublicKey(poolId) }])
-      : accountInfos?.marketAccount ?? [];
-    const item = accounts[0];
-    if (item.accountInfo === null)
-      throw Error(
-        "fetch pool info error: " + poolId ||
-          accountInfos?.[0]?.pubkey?.toBase58() ||
-          "poolId and accountInfo undefined",
-      );
-
-    const rpc = CpmmPoolInfoLayout.decode(item.accountInfo.data);
-    const poolInfo = {
-      ...rpc,
-      programId: item.accountInfo.owner,
-    };
-
-    let configInfo: ReturnType<typeof CpmmConfigInfoLayout.decode> | undefined;
-
-    if (fetchConfigInfo) {
-      const configState = poolId
-        ? await getMultipleAccountsInfoWithCustomFlags(this.scope.connection, [
-            { pubkey: new PublicKey(poolInfo.configId) },
-          ])
-        : accountInfos?.configState ?? [];
-
-      const configItemInfo = configState[0].accountInfo;
-      if (configItemInfo === null) throw Error("fetch pool config error: " + poolInfo.configId);
-      configInfo = CpmmConfigInfoLayout.decode(configItemInfo.data);
+    // 1. Validação prévia e preparação dos dados
+    if (!poolId && !accountInfos?.marketAccount?.length) {
+      throw new Error("Either poolId or accountInfos.marketAccount must be provided");
     }
 
-    const vaultAccountInfo = poolId
-      ? await getMultipleAccountsInfoWithCustomFlags(this.scope.connection, [
-          { pubkey: new PublicKey(poolInfo.vaultA) },
-          { pubkey: new PublicKey(poolInfo.vaultB) },
-        ])
-      : [...(accountInfos?.vaultAInfo ?? []), ...(accountInfos?.vaultBInfo ?? [])];
+    // 2. Fetch pool account
+    const poolAccounts = poolId
+      ? await getMultipleAccountsInfoWithCustomFlags(this.scope.connection, [{ pubkey: new PublicKey(poolId) }])
+      : accountInfos!.marketAccount;
 
-    const vaultAInfo = vaultAccountInfo[0].accountInfo;
-    const vaultBInfo = vaultAccountInfo[1].accountInfo;
+    const poolAccount = poolAccounts[0];
+    if (!poolAccount?.accountInfo) {
+      const identifier = poolId || accountInfos?.marketAccount?.[0]?.pubkey?.toBase58() || "unknown";
+      throw new Error(`Pool account not found: ${identifier}`);
+    }
 
-    if (vaultAInfo === null) throw Error("fetch vault A info error: " + poolInfo.vaultA);
-    if (vaultBInfo === null) throw Error("fetch vault B info error: " + poolInfo.vaultB);
+    // 3. Decode pool info uma única vez
+    const poolInfo = {
+      ...CpmmPoolInfoLayout.decode(poolAccount.accountInfo.data),
+      programId: poolAccount.accountInfo.owner,
+    };
 
+    // 4. Preparar todas as chaves públicas necessárias de uma vez
+    const accountsToFetch: { pubkey: PublicKey }[] = [];
+    const vaultKeys = [poolInfo.vaultA, poolInfo.vaultB];
+
+    if (poolId) {
+      // Adicionar vaults
+      accountsToFetch.push(...vaultKeys.map((key) => ({ pubkey: new PublicKey(key) })));
+
+      // Adicionar config se necessário
+      if (fetchConfigInfo) {
+        accountsToFetch.push({ pubkey: new PublicKey(poolInfo.configId) });
+      }
+    }
+
+    // 5. Fetch único para todas as contas necessárias (quando usando poolId)
+    let fetchedAccounts: any[] = [];
+    if (poolId && accountsToFetch.length > 0) {
+      fetchedAccounts = await getMultipleAccountsInfoWithCustomFlags(this.scope.connection, accountsToFetch);
+    }
+
+    // 6. Processar config info
+    let configInfo: ReturnType<typeof CpmmConfigInfoLayout.decode> | undefined;
+    if (fetchConfigInfo) {
+      const configAccount = poolId
+        ? fetchedAccounts[fetchedAccounts.length - 1] // Config é sempre o último quando fetchConfigInfo=true
+        : accountInfos?.configState?.[0];
+
+      if (!configAccount?.accountInfo) {
+        throw new Error(`Config account not found: ${poolInfo.configId}`);
+      }
+      configInfo = CpmmConfigInfoLayout.decode(configAccount.accountInfo.data);
+    }
+
+    // 7. Processar vault accounts
+    const vaultAInfo = poolId ? fetchedAccounts[0]?.accountInfo : accountInfos?.vaultAInfo?.[0]?.accountInfo;
+
+    const vaultBInfo = poolId ? fetchedAccounts[1]?.accountInfo : accountInfos?.vaultBInfo?.[0]?.accountInfo;
+
+    if (!vaultAInfo || !vaultBInfo) {
+      throw new Error(`Vault accounts not found: A=${poolInfo.vaultA}, B=${poolInfo.vaultB}`);
+    }
+
+    // 8. Decodificar vault amounts (pode ser otimizado com cache se necessário)
     const vaultAAmount = new BN(AccountLayout.decode(vaultAInfo.data).amount.toString());
     const vaultBAmount = new BN(AccountLayout.decode(vaultBInfo.data).amount.toString());
 
+    // 9. Calcular reserves
     const baseReserve = vaultAAmount.sub(poolInfo.protocolFeesMintA).sub(poolInfo.fundFeesMintA);
+
     const quoteReserve = vaultBAmount.sub(poolInfo.protocolFeesMintB).sub(poolInfo.fundFeesMintB);
 
-    const returnData: CpmmRpcData = {
+    // 10. Calcular preço de forma mais eficiente
+    const baseDecimalFactor = new Decimal(10).pow(poolInfo.mintDecimalA);
+    const quoteDecimalFactor = new Decimal(10).pow(poolInfo.mintDecimalB);
+
+    const normalizedBase = new Decimal(baseReserve.toString()).div(baseDecimalFactor);
+    const normalizedQuote = new Decimal(quoteReserve.toString()).div(quoteDecimalFactor);
+
+    const poolPrice = normalizedBase.isZero() ? new Decimal(0) : normalizedQuote.div(normalizedBase);
+
+    return {
       ...poolInfo,
       baseReserve,
       quoteReserve,
       vaultAAmount,
       vaultBAmount,
       configInfo,
-      poolPrice: new Decimal(quoteReserve.toString())
-        .div(new Decimal(10).pow(poolInfo.mintDecimalB))
-        .div(new Decimal(baseReserve.toString()).div(new Decimal(10).pow(poolInfo.mintDecimalA))),
+      poolPrice,
     };
-
-    return returnData;
   }
 
   public async getRpcPoolInfos(

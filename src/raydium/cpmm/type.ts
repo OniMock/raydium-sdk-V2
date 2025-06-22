@@ -1,4 +1,4 @@
-import { EpochInfo, PublicKey } from "@solana/web3.js";
+import { AccountInfo, EpochInfo, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import Decimal from "decimal.js";
 import { ApiCpmmConfigInfo, ApiV3PoolInfoStandardItemCpmm, ApiV3Token, CpmmKeys } from "../../api/type";
@@ -251,3 +251,9 @@ export interface CpmmLockNftInfo extends CpmmLockNftBasicInfo {
     };
   };
 }
+export type RpcPoolInfoAccounts = {
+  marketAccount: ({ accountInfo: AccountInfo<Buffer> | null } & { pubkey: PublicKey })[];
+  configState: ({ accountInfo: AccountInfo<Buffer> | null } & { pubkey: PublicKey })[];
+  vaultAInfo: ({ accountInfo: AccountInfo<Buffer> | null } & { pubkey: PublicKey })[];
+  vaultBInfo: ({ accountInfo: AccountInfo<Buffer> | null } & { pubkey: PublicKey })[];
+};

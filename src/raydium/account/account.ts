@@ -199,7 +199,7 @@ export default class Account extends ModuleBase {
       .sort((a, b) => (a.accountInfo.amount.lt(b.accountInfo.amount) ? 1 : -1));
     // find token or don't need create
     if (createInfo === undefined || accounts.length > 0) {
-      return accounts.length > 0 ? { account: accounts[0].pubkey } : {};
+      //return accounts.length > 0 ? { account: accounts[0].pubkey } : {};
     }
 
     const newTxInstructions: AddInstructionParam = {
@@ -212,7 +212,7 @@ export default class Account extends ModuleBase {
 
     if (associatedOnly) {
       const _createATAIns = createAssociatedTokenAccountInstruction(owner, ata, owner, mint, tokenProgram);
-      const _ataInTokenAcc = this.tokenAccountRawInfos.find((i) => i.pubkey.equals(ata))
+      const _ataInTokenAcc = this.tokenAccountRawInfos.find((i) => i.pubkey.equals(ata));
       if (checkCreateATAOwner) {
         const ataInfo = await this.scope.connection.getAccountInfo(ata);
         if (ataInfo === null) {
@@ -231,7 +231,7 @@ export default class Account extends ModuleBase {
         newTxInstructions.instructions!.push(_createATAIns);
         newTxInstructions.instructionTypes!.push(InstructionType.CreateATA);
       }
-      if (mint.equals(WSOLMint) && createInfo.amount) {
+      if (mint.equals(WSOLMint) && createInfo?.amount) {
         const txInstruction = await createWSolAccountInstructions({
           connection: this.scope.connection,
           owner: this.scope.ownerPubKey,
@@ -262,7 +262,7 @@ export default class Account extends ModuleBase {
         newTxInstructions.endInstructions!.push(
           closeAccountInstruction({
             owner,
-            payer: createInfo.payer || owner,
+            payer: createInfo?.payer || owner,
             tokenAccount: ata,
             programId: tokenProgram,
           }),
@@ -280,7 +280,7 @@ export default class Account extends ModuleBase {
         basePubkey: owner,
         seed: newTokenAccount.seed,
         newAccountPubkey: newTokenAccount.publicKey,
-        lamports: balanceNeeded + Number(createInfo.amount?.toString() ?? 0),
+        lamports: balanceNeeded + Number(createInfo?.amount?.toString() ?? 0),
         space: AccountLayout.span,
         programId: tokenProgram,
       });
@@ -300,7 +300,7 @@ export default class Account extends ModuleBase {
         newTxInstructions.endInstructions!.push(
           closeAccountInstruction({
             owner,
-            payer: createInfo.payer || owner,
+            payer: createInfo?.payer || owner,
             tokenAccount: newTokenAccount.publicKey,
             programId: tokenProgram,
           }),

@@ -248,18 +248,22 @@ export class TxBuilder {
     return this;
   }
 
-  public async versionBuild<O = Record<string, any>>({
-    txVersion,
-    extInfo,
-  }: {
-    txVersion?: TxVersion;
-    extInfo?: O;
-  }): Promise<MakeTxData<TxVersion.LEGACY, O> | MakeTxData<TxVersion.V0, O>> {
-    if (txVersion === TxVersion.V0) return (await this.buildV0({ ...(extInfo || {}) })) as MakeTxData<TxVersion.V0, O>;
-    return this.build<O>(extInfo) as MakeTxData<TxVersion.LEGACY, O>;
+  public async versionBuild<O = Record<string, any>>(
+    {
+      txVersion,
+      extInfo,
+    }: {
+      txVersion?: TxVersion;
+      extInfo?: O;
+    },
+    nonce?: string,
+  ): Promise<MakeTxData<TxVersion.LEGACY, O> | MakeTxData<TxVersion.V0, O>> {
+    if (txVersion === TxVersion.V0)
+      return (await this.buildV0({ ...(extInfo || {}) }, nonce)) as MakeTxData<TxVersion.V0, O>;
+    return this.build<O>(extInfo, nonce) as MakeTxData<TxVersion.LEGACY, O>;
   }
 
-  public build<O = Record<string, any>>(extInfo?: O): MakeTxData<TxVersion.LEGACY, O> {
+  public build<O = Record<string, any>>(extInfo?: O, nonce?: string): MakeTxData<TxVersion.LEGACY, O> {
     const transaction = new Transaction();
     if (this.allInstructions.length) transaction.add(...this.allInstructions);
     transaction.feePayer = this.feePayer;
@@ -273,7 +277,8 @@ export class TxBuilder {
       instructionTypes: [...this.instructionTypes, ...this.endInstructionTypes],
       execute: async (params) => {
         const { recentBlockHash: propBlockHash, skipPreflight = true, sendAndConfirm, notSendToRpc } = params || {};
-        const recentBlockHash = propBlockHash ?? (await getRecentBlockHash(this.connection, this.blockhashCommitment));
+        const recentBlockHash =
+          propBlockHash ?? nonce ?? (await getRecentBlockHash(this.connection, this.blockhashCommitment));
         transaction.recentBlockhash = recentBlockHash;
         if (this.signers.length) transaction.sign(...this.signers);
 
@@ -509,6 +514,7 @@ export class TxBuilder {
       forerunCreate?: boolean;
       recentBlockhash?: string;
     },
+    nonce?: string,
   ): Promise<MakeTxData<TxVersion.V0, O>> {
     const {
       lookupTableCache = {},
@@ -526,12 +532,16 @@ export class TxBuilder {
     for (const item of allLTA) {
       if (lookupTableAddressAccount[item] === undefined) needCacheLTA.push(new PublicKey(item));
     }
-    const newCacheLTA = await getMultipleLookupTableInfo({ connection: this.connection, address: needCacheLTA });
-    for (const [key, value] of Object.entries(newCacheLTA)) lookupTableAddressAccount[key] = value;
+    if (needCacheLTA.length > 0) {
+      const newCacheLTA = await getMultipleLookupTableInfo({ connection: this.connection, address: needCacheLTA });
+      for (const [key, value] of Object.entries(newCacheLTA)) lookupTableAddressAccount[key] = value;
+    }
 
-    const recentBlockhash = forerunCreate
-      ? PublicKey.default.toBase58()
-      : propRecentBlockhash ?? (await getRecentBlockHash(this.connection, this.blockhashCommitment));
+    const recentBlockhash =
+      nonce ??
+      (forerunCreate
+        ? PublicKey.default.toBase58()
+        : propRecentBlockhash ?? (await getRecentBlockHash(this.connection, this.blockhashCommitment)));
     const messageV0 = new TransactionMessage({
       payerKey: this.feePayer,
       recentBlockhash,

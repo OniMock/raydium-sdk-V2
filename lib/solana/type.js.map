@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/solana/type.ts"],"sourceRoot":"../src","sourcesContent":["export type Cluster = \"mainnet\" | \"devnet\";\r\n"],"mappings":";;;;;;;;;;;;;;;AAAA;AAAA;","names":[]}

@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/common/fee.ts"],"sourceRoot":"../src","sourcesContent":["import BN from \"bn.js\";\r\nexport const FEE_RATE_DENOMINATOR_VALUE = new BN(1_000_000);\r\n"],"mappings":";AAAA;AACO,IAAM,6BAA6B,IAAI,GAAG,GAAS;","names":[]}

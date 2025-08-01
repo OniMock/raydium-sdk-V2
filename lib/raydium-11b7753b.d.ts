@@ -1,5 +1,5 @@
 import { PublicKey, Commitment, EpochInfo, Connection, Transaction, Signer, TransactionInstruction, Keypair } from '@solana/web3.js';
-import { aG as TxBuilder, ay as AddInstructionParam, af as BigNumberish, bt as CreateFarm, aF as MakeTxData, bu as CreateFarmExtInfo, bv as UpdateFarmReward, bw as UpdateFarmRewards, bx as FarmDWParam, $ as FormatFarmInfoOut, bS as ComputeBudgetConfig, bT as TxTipConfig, aE as MakeMultiTxData, q as ApiV3PoolInfoStandardItem, cg as Percent, cc as TokenAmount, x as AmmV4Keys, y as AmmV5Keys, p as ApiV3PoolInfoConcentratedItem, _ as FormatFarmInfoOutV6, D as ClmmKeys, bO as MakeTransaction, bY as ReturnTypeFetchMultipleMintInfos, z as CpmmKeys, r as ApiV3PoolInfoStandardItemCpmm, bW as GetTransferAmountFee, G as PoolKeys, i as ApiV3Token, a2 as OwnerIdoInfo, a3 as IdoKeysData, bU as LoadParams, J as JupTokenType, bI as TokenInfo, bN as SignAllTransactions, a as Api, a0 as AvailabilityCheckAPI3, k as ApiV3TokenRes } from './api-34c9026e.js';
+import { aG as TxBuilder, ay as AddInstructionParam, af as BigNumberish, bt as CreateFarm, aF as MakeTxData, bu as CreateFarmExtInfo, bv as UpdateFarmReward, bw as UpdateFarmRewards, bx as FarmDWParam, $ as FormatFarmInfoOut, bS as ComputeBudgetConfig, bT as TxTipConfig, aE as MakeMultiTxData, q as ApiV3PoolInfoStandardItem, cg as Percent, cc as TokenAmount, x as AmmV4Keys, y as AmmV5Keys, p as ApiV3PoolInfoConcentratedItem, _ as FormatFarmInfoOutV6, D as ClmmKeys, bO as MakeTransaction, bY as ReturnTypeFetchMultipleMintInfos, z as CpmmKeys, r as ApiV3PoolInfoStandardItemCpmm, bW as GetTransferAmountFee, G as PoolKeys, i as ApiV3Token, a2 as OwnerIdoInfo, a3 as IdoKeysData, bU as LoadParams, J as JupTokenType, bI as TokenInfo, bN as SignAllTransactions, a as Api, a0 as AvailabilityCheckAPI3, k as ApiV3TokenRes } from './api-73facb9a.js';
 import { API_URL_CONFIG } from './api/url.js';
 import { Owner } from './common/owner.js';
 import { Cluster } from './solana/type.js';
@@ -11,7 +11,7 @@ import Decimal from 'decimal.js';
 import { StableLayout } from './raydium/liquidity/stable.js';
 import { AddLiquidityParams, RemoveParams, CreatePoolParam, CreatePoolAddress, CreateMarketAndPoolParam, ComputeAmountOutParam, ComputeAmountInParam, SwapParam, AmmRpcData } from './raydium/liquidity/type.js';
 import { ClmmPositionLayout, PositionInfoLayout, PoolInfoLayout } from './raydium/clmm/layout.js';
-import { m as CreateConcentratedPool, O as OpenPositionFromBase, p as OpenPositionFromBaseExtInfo, q as OpenPositionFromLiquidity, r as OpenPositionFromLiquidityExtInfo, I as IncreasePositionFromLiquidity, M as ManipulateLiquidityExtInfo, n as IncreasePositionFromBase, D as DecreaseLiquidity, B as ClosePositionExtInfo, L as LockPosition, J as ClmmLockAddress, H as HarvestLockPosition, s as InitRewardParams, E as InitRewardExtInfo, t as InitRewardsParams, u as SetRewardParams, v as SetRewardsParams, w as CollectRewardParams, x as CollectRewardsParams, y as HarvestAllRewardsParams, F as ClmmRpcData, d as ComputeClmmPoolInfo, l as ReturnTypeFetchMultiplePoolTickArrays } from './type-05b0e57b.js';
+import { m as CreateConcentratedPool, O as OpenPositionFromBase, p as OpenPositionFromBaseExtInfo, q as OpenPositionFromLiquidity, r as OpenPositionFromLiquidityExtInfo, I as IncreasePositionFromLiquidity, M as ManipulateLiquidityExtInfo, n as IncreasePositionFromBase, D as DecreaseLiquidity, B as ClosePositionExtInfo, L as LockPosition, J as ClmmLockAddress, H as HarvestLockPosition, s as InitRewardParams, E as InitRewardExtInfo, t as InitRewardsParams, u as SetRewardParams, v as SetRewardsParams, w as CollectRewardParams, x as CollectRewardsParams, y as HarvestAllRewardsParams, F as ClmmRpcData, d as ComputeClmmPoolInfo, l as ReturnTypeFetchMultiplePoolTickArrays } from './type-c309eacc.js';
 import { RpcPoolInfoAccounts, CpmmRpcData, CpmmComputeData, CreateCpmmPoolParam, CreateCpmmPoolAddress, AddCpmmLiquidityParams, WithdrawCpmmLiquidityParams, CpmmSwapParams, LockCpmmLpParams, CpmmLockExtInfo, HarvestLockCpmmLpParams, ComputePairAmountParams } from './raydium/cpmm/type.js';
 import { ComputeAmountOutLayout, BasicPoolInfo, ReturnTypeGetAllRoute, ComputeRoutePathType, ComputePoolType, ReturnTypeFetchMultipleInfo } from './raydium/tradeV2/type.js';
 import { Structure } from './marshmallow/index.js';
@@ -518,11 +518,11 @@ declare class Utils1216 extends ModuleBase {
         perLpLoss: BN__default;
         totalClaimedAmount: BN__default;
     }[], "", {
+        status: number;
         padding: BN__default[];
         bump: number;
         endTime: BN__default;
         openTime: BN__default;
-        status: number;
         ammId: PublicKey;
         tokenInfo: {
             mintDecimals: number;

@@ -1,6 +1,6 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { PurchaseInstructionKeys, ClaimInstructionKeysV3, ClaimInstructionKeys, IdoClaimInstructionParams } from './type.js';
-import '../../api-73facb9a.js';
+import '../../api-34c9026e.js';
 import 'axios';
 import '../../solana/type.js';
 import 'bn.js';

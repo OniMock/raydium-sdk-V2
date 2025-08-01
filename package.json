@@ -29,14 +29,14 @@
     "test": "jest",
     "build-docs": "typedoc",
     "build-docs-watch": "typedoc --watch",
-    "build-dist": "rm -rf dist && mkdir dist && yarn build-docs",
-    "build-lib": "rm -rf lib && tsup src --format cjs,esm --dts --sourcemap --no-splitting --minify -d lib --silent",
+    "build-dist": "rimraf  dist && mkdir dist && yarn build-docs",
+    "build-lib": "rimraf  lib && tsup src --format cjs,esm --dts --sourcemap --no-splitting --minify -d lib --silent",
     "build-all": "yarn build-dist && yarn build-lib",
     "build": "yarn build-lib",
     "push": "yarn build && yarn publish",
     "prepare": "husky install",
     "dev": "ts-node -r tsconfig-paths/register",
-    "watch": "rm -rf lib && tsup src --watch --format cjs,esm --dts --sourcemap --no-splitting --minify -d lib"
+    "watch": "rimraf  lib && tsup src --watch --format cjs,esm --dts --sourcemap --no-splitting --minify -d lib"
   },
   "dependencies": {
     "@solana/buffer-layout": "^4.0.1",
@@ -71,6 +71,7 @@
     "jest": "^27.5.1",
     "lint-staged": "^12.4.1",
     "prettier": "^2.6.2",
+    "rimraf": "^6.0.1",
     "ts-jest": "^27.0.7",
     "ts-jest-resolver": "^2.0.0",
     "ts-node": "^10.7.0",

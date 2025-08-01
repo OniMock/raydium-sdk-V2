@@ -55,6 +55,8 @@ import {
 } from "./type";
 import { getCpLockPda } from "./pda";
 
+const formatElapsedTime = (startTime: number): string => ((performance.now() - startTime) / 1000).toFixed(2);
+
 export default class CpmmModule extends ModuleBase {
   constructor(params: ModuleBaseProps) {
     super(params);
@@ -797,14 +799,21 @@ export default class CpmmModule extends ModuleBase {
       // custom overrides
       ...config,
     };
-
+    const startTime = performance.now();
+    console.log(
+      `Swap start: ${formatElapsedTime(
+        startTime,
+      )}s, baseIn: ${baseIn}, fixedOut: ${fixedOut}, inputAmount: ${inputAmount.toString()}`,
+    );
     const txBuilder = this.createTxBuilder(feePayer);
+    console.log(`TxBuilder created: ${formatElapsedTime(startTime)}s`);
 
     if (nonce && nonce?.instruction) {
       txBuilder.addInstruction({
         instructions: [nonce.instruction],
         instructionTypes: [nonce.instruction].map(() => InstructionType.NonceAccount), // Ajuste o tipo conforme necessário
       });
+      console.log(`Nonce instruction added: ${formatElapsedTime(startTime)}s`);
     }
 
     if (computeBudgetConfig) {
@@ -813,6 +822,7 @@ export default class CpmmModule extends ModuleBase {
         instructions,
         instructionTypes,
       });
+      console.log(`Compute budget added: ${formatElapsedTime(startTime)}s`);
     }
 
     // Apply slippage to swap results
@@ -825,10 +835,12 @@ export default class CpmmModule extends ModuleBase {
         .mul(new BN((1 + slippage) * 10000))
         .div(new BN(10000));
     }
+    console.log(`Slippage applied: ${formatElapsedTime(startTime)}s`);
 
     const [mintA, mintB] = [new PublicKey(poolInfo.mintA.address), new PublicKey(poolInfo.mintB.address)];
     let mintATokenAcc: PublicKey | undefined;
     let mintBTokenAcc: PublicKey | undefined;
+    console.log(`Mints prepared: ${formatElapsedTime(startTime)}s`);
 
     if (useIdempotent) {
       // Use native Solana libraries for idempotent ATA creation
@@ -837,9 +849,11 @@ export default class CpmmModule extends ModuleBase {
 
       const mintAIsSOL = mintA.equals(NATIVE_MINT);
       const mintBIsSOL = mintB.equals(NATIVE_MINT);
-
+      console.log(`${formatElapsedTime(startTime)}s: mintAIsSOL: ${mintAIsSOL}, mintBIsSOL: ${mintBIsSOL}`);
       mintATokenAcc = getAssociatedTokenAddressSync(mintA, this.scope.ownerPubKey, false, tokenProgramA);
+      console.log(`${formatElapsedTime(startTime)}s: mintATokenAcc prepared: ${mintATokenAcc.toBase58()}`);
       mintBTokenAcc = getAssociatedTokenAddressSync(mintB, this.scope.ownerPubKey, false, tokenProgramB);
+      console.log(`${formatElapsedTime(startTime)}s: mintBTokenAcc prepared: ${mintBTokenAcc.toBase58()}`);
 
       // Add idempotent ATA creation instructions
       if (!mintAIsSOL) {
@@ -855,6 +869,7 @@ export default class CpmmModule extends ModuleBase {
           ],
           instructionTypes: [InstructionType.CreateATA],
         });
+        console.log(`Idempotent ATA for mintA added: ${formatElapsedTime(startTime)}s`);
       }
 
       if (!mintBIsSOL) {
@@ -870,11 +885,17 @@ export default class CpmmModule extends ModuleBase {
           ],
           instructionTypes: [InstructionType.CreateATA],
         });
+        console.log(`Idempotent ATA for mintB added: ${formatElapsedTime(startTime)}s`);
       }
     } else {
       // Use legacy approach with custom token account management
       const mintAUseSOLBalance = poolInfo.mintA.address === WSOLMint.toBase58();
       const mintBUseSOLBalance = poolInfo.mintB.address === WSOLMint.toBase58();
+      console.log(
+        `mintAUseSOLBalance: ${mintAUseSOLBalance}, mintBUseSOLBalance: ${mintBUseSOLBalance}, ${formatElapsedTime(
+          startTime,
+        )}s`,
+      );
 
       const { account: mintATokenAccResult, instructionParams: mintATokenAccInstruction } =
         await this.scope.account.getOrCreateTokenAccount({
@@ -893,7 +914,9 @@ export default class CpmmModule extends ModuleBase {
           associatedOnly: mintAUseSOLBalance ? false : associatedOnly,
           checkCreateATAOwner,
         });
+      console.log(`mintATokenAccResult: ${JSON.stringify(mintATokenAccResult)}, ${formatElapsedTime(startTime)}s`);
       mintATokenAccInstruction && txBuilder.addInstruction(mintATokenAccInstruction);
+      console.log(`mintATokenAccInstruction added: ${formatElapsedTime(startTime)}s`);
       mintATokenAcc = mintATokenAccResult;
 
       const { account: mintBTokenAccResult, instructionParams: mintBTokenAccInstruction } =
@@ -913,7 +936,9 @@ export default class CpmmModule extends ModuleBase {
           associatedOnly: mintBUseSOLBalance ? false : associatedOnly,
           checkCreateATAOwner,
         });
+      console.log(`mintBTokenAccResult: ${JSON.stringify(mintBTokenAccResult)}, ${formatElapsedTime(startTime)}s`);
       mintBTokenAccInstruction && txBuilder.addInstruction(mintBTokenAccInstruction);
+      console.log(`mintBTokenAccInstruction added: ${formatElapsedTime(startTime)}s`);
       mintBTokenAcc = mintBTokenAccResult;
 
       if (!mintATokenAcc || !mintBTokenAcc)
@@ -930,6 +955,7 @@ export default class CpmmModule extends ModuleBase {
 
     // Get pool keys if not provided
     const poolKeys = propPoolKeys ?? (await this.getCpmmPoolKeys(poolInfo.id));
+    console.log(`Pool keys fetched: ${formatElapsedTime(startTime)}s`);
     // Configure swap instruction based on baseIn direction
     const sourceTokenAccount = baseIn ? mintATokenAcc! : mintBTokenAcc!;
     const destinationTokenAccount = baseIn ? mintBTokenAcc! : mintATokenAcc!;
@@ -943,7 +969,7 @@ export default class CpmmModule extends ModuleBase {
     const destinationTokenProgram = baseIn
       ? new PublicKey(poolInfo.mintB.programId ?? TOKEN_PROGRAM_ID)
       : new PublicKey(poolInfo.mintA.programId ?? TOKEN_PROGRAM_ID);
-
+    console.log(`Swap parameters prepared: ${formatElapsedTime(startTime)}s`);
     // Adicionar instrução de swap
     txBuilder.addInstruction({
       instructions: [
@@ -987,8 +1013,10 @@ export default class CpmmModule extends ModuleBase {
       ],
       instructionTypes: [fixedOut ? InstructionType.CpmmSwapBaseOut : InstructionType.CpmmSwapBaseIn],
     });
+    console.log(`Swap instruction added: ${formatElapsedTime(startTime)}s`);
 
     txBuilder.addTipInstruction(txTipConfig);
+    console.log(`Tip instruction added: ${formatElapsedTime(startTime)}s`);
 
     return txBuilder.versionBuild({ txVersion }, nonce?.nonce) as Promise<MakeTxData<T>>;
   }

@@ -1,1 +1,1 @@
-{"version":3,"sources":["../../src/solana/index.ts"],"sourceRoot":"../src","sourcesContent":["export * from \"./type\";\r\n"],"mappings":";;;;;;;;;;;;;;;AAAA;AAAA;","names":[]}
+{"version":3,"sources":["../../src/solana/index.ts"],"sourceRoot":"../src","sourcesContent":["export * from \"./type\";\r\n"],"mappings":"kWAAA","names":[]}

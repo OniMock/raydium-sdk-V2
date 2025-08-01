@@ -893,37 +893,37 @@ declare type FarmStateV6 = GetStructureSchema<FarmStateLayoutV6>;
 declare type FarmState = FarmStateV3 | FarmStateV5 | FarmStateV6;
 declare type FarmStateLayout = FarmStateLayoutV3 | FarmStateLayoutV5 | FarmStateLayoutV6;
 declare const farmLedgerLayoutV3_1: Structure<PublicKey | BN__default | BN__default[], "", {
-    state: BN__default;
     id: PublicKey;
+    state: BN__default;
     owner: PublicKey;
     deposited: BN__default;
     rewardDebts: BN__default[];
 }>;
 declare const farmLedgerLayoutV3_2: Structure<PublicKey | BN__default | BN__default[], "", {
-    state: BN__default;
     id: PublicKey;
+    state: BN__default;
     owner: PublicKey;
     deposited: BN__default;
     rewardDebts: BN__default[];
     voteLockedBalance: BN__default;
 }>;
 declare const farmLedgerLayoutV5_1: Structure<PublicKey | BN__default | BN__default[], "", {
-    state: BN__default;
     id: PublicKey;
+    state: BN__default;
     owner: PublicKey;
     deposited: BN__default;
     rewardDebts: BN__default[];
 }>;
 declare const farmLedgerLayoutV5_2: Structure<PublicKey | BN__default | BN__default[], "", {
-    state: BN__default;
     id: PublicKey;
+    state: BN__default;
     owner: PublicKey;
     deposited: BN__default;
     rewardDebts: BN__default[];
 }>;
 declare const farmLedgerLayoutV6_1: Structure<PublicKey | BN__default | BN__default[], "", {
-    state: BN__default;
     id: PublicKey;
+    state: BN__default;
     owner: PublicKey;
     deposited: BN__default;
     rewardDebts: BN__default[];
@@ -944,7 +944,7 @@ declare const dwLayout: Structure<number | BN__default, "", {
     instruction: number;
     amount: BN__default;
 }>;
-declare const VoterVotingMintConfig: Structure<PublicKey | number[] | BN__default | BN__default[], "", {
+declare const VoterVotingMintConfig: Structure<number[] | PublicKey | BN__default | BN__default[], "", {
     mint: PublicKey;
     grantAuthority: PublicKey;
     baselineVoteWeightScaledFactor: BN__default;
@@ -954,7 +954,7 @@ declare const VoterVotingMintConfig: Structure<PublicKey | number[] | BN__defaul
     reserved1: number[];
     reserved2: BN__default[];
 }>;
-declare const VoterRegistrar: Structure<number | PublicKey | number[] | Buffer | BN__default | BN__default[] | {
+declare const VoterRegistrar: Structure<number | number[] | PublicKey | Buffer | BN__default | BN__default[] | {
     mint: PublicKey;
     grantAuthority: PublicKey;
     baselineVoteWeightScaledFactor: BN__default;
@@ -1009,7 +1009,7 @@ declare const VoterDepositEntry: Structure<number | boolean | number[] | BN__def
     allowClawback: boolean;
     votingMintConfigIdx: number;
 }>;
-declare const Voter: Structure<number | PublicKey | number[] | Buffer | {
+declare const Voter: Structure<number | number[] | PublicKey | Buffer | {
     reserved: number[];
     lockup: {
         startTime: BN__default;

@@ -10,7 +10,7 @@ import '@solana/web3.js';
 import '../../marshmallow/index.js';
 import '../../marshmallow/buffer-layout.js';
 import 'decimal.js';
-import '../../api-34c9026e.js';
+import '../../api-73facb9a.js';
 import 'axios';
 import '../../solana/type.js';
 import '@solana/spl-token';

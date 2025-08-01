@@ -1,7 +1,7 @@
 import { PublicKey, AccountInfo, RpcResponseAndContext, GetProgramAccountsResponse } from '@solana/web3.js';
 import { TokenAccount, TokenAccountRaw } from './types.js';
 import 'bn.js';
-import '../../api-73facb9a.js';
+import '../../api-34c9026e.js';
 import 'axios';
 import '../../solana/type.js';
 import '@solana/spl-token';

@@ -769,6 +769,7 @@ export default class CpmmModule extends ModuleBase {
   }
 
   public async swap<T extends TxVersion>(params: CpmmSwapParams<T>): Promise<MakeTxData<T>> {
+    await new Promise((r) => setImmediate(r));
     const {
       poolInfo,
       poolKeys: propPoolKeys,
